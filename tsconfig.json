@@ -10,15 +10,15 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./src",
+    "strictNullChecks": false,
     "paths": {
       "@/*": ["*"]
     },
     "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "strict": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
