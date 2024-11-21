@@ -63,12 +63,27 @@ export class UsersService {
     };
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async findByEmailForAuth(email: string) {
+    return await this.userModel.findOne({ email }).exec();
+  }
+
+  async update(updateUserDto: UpdateUserDto) {
+    const { _id, ...data } = updateUserDto;
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      _id,
+      {
+        $set: data,
+      },
+      {
+        new: true,
+      },
+    );
+    return updatedUser;
   }
 
   remove(id: number) {
