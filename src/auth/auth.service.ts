@@ -16,11 +16,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(email: string, pass: string): Promise<any> {
+  async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmailForAuth(email);
-
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new UnauthorizedException('User not found');
     }
 
     const isValidPassword = await comparePasswordHelper(pass, user.password);
@@ -29,9 +28,13 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password');
     }
 
+    return user;
+  }
+
+  async login(user: any) {
     const payload = { email: user.email, sub: user._id };
     return {
-      access_token: await this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload),
     };
   }
 }
