@@ -37,4 +37,8 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
+
+  async handleRegister(createAuthDto: CreateAuthDto) {
+    return this.usersService.handleRegister(createAuthDto);
+  }
 }

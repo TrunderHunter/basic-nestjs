@@ -5,6 +5,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { hashPasswordHelper } from '@/helpers/util';
+import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
+import { v4 as uuidv4 } from 'uuid';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class UsersService {
@@ -88,5 +91,25 @@ export class UsersService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  async handleRegister(createAuthDto: CreateAuthDto) {
+    const { email, password, name } = createAuthDto;
+    const hashPassword = await hashPasswordHelper(password);
+
+    if (await this.isUserExist(email)) {
+      throw new BadRequestException(`User with email ${email} already exist`);
+    }
+
+    const createdUser = new this.userModel({
+      email,
+      name,
+      password: hashPassword,
+      isActive: false,
+      codeId: uuidv4(),
+      codeExpired: dayjs().add(1, 'day').toDate(),
+    });
+    const { _id } = await createdUser.save();
+    return { _id, email };
   }
 }
