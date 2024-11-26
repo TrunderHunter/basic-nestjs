@@ -8,10 +8,16 @@ import { hashPasswordHelper } from '@/helpers/util';
 import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
+import { MailerService } from '@nestjs-modules/mailer';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly mailerService: MailerService,
+    private configService: ConfigService,
+  ) {}
 
   isUserExist(email: string) {
     return this.userModel.findOne({
@@ -101,15 +107,32 @@ export class UsersService {
       throw new BadRequestException(`User with email ${email} already exist`);
     }
 
+    // Create user
+    const codeId = uuidv4();
+    const codeExpirationDays = this.configService.get<number>(
+      'CODE_EXPIRATION_MINUTES',
+    );
     const createdUser = new this.userModel({
       email,
       name,
       password: hashPassword,
       isActive: false,
-      codeId: uuidv4(),
-      codeExpired: dayjs().add(1, 'day').toDate(),
+      codeId,
+      codeExpired: dayjs().add(codeExpirationDays, 'minute').toDate(),
     });
     const { _id } = await createdUser.save();
-    return { _id, email };
+
+    // Send email
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Testing Nest MailerModule ✔',
+      template: './register', // use the register.hbs template
+      context: {
+        name: createAuthDto?.name ?? createAuthDto?.email,
+        activationCode: codeId,
+      },
+    });
+
+    return { _id, email, name };
   }
 }

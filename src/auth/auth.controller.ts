@@ -47,8 +47,11 @@ export class AuthController {
     await this.mailerService.sendMail({
       to: 'tranvanhung28122002@gmail.com',
       subject: 'Testing Nest MailerModule ✔',
-      text: 'welcome',
-      html: '<b>welcome</b>',
+      template: './register', // use the register.hbs template
+      context: {
+        name: 'John Doe',
+        activationCode: '123456',
+      },
     });
     return 'email sent';
   }
